@@ -81,14 +81,14 @@ class AccountSignin(APIView):
 
                 else:
             
-                    return Response({'status':"password_incorrect"}, status=status.HTTP_200_OK)
+                    return Response({'status':"password_incorrect"}, status=202)
             except User.DoesNotExist:
-                return Response({"error":"user_does_not_exist"},status=400)
+                return Response({"error":"user_does_not_exist"},status=403)
         if request.data['signin_type'] == "phone":
             phonenumber = str(request.data['phonenumber'])
             password = str(request.data['password'])
             if len(password) < 3 or len(phonenumber) < 8 or len (phonenumber)>13:
-                return Response({"error":"invalid_params"},status=400)
+                return Response({"error":"invalid_params"},status=401)
             try:
                 if User.objects.get(username=phonenumber).check_password(password):
                     return Response({'status':"success" ,'userid':User.objects.get(username=phonenumber).pk}, status=status.HTTP_200_OK)
@@ -272,10 +272,11 @@ class ListAction(APIView):
         result = []
         try:
             result = [Action.objects.all()[i] for i in sample] 
+            sampleuer = random.sample(xrange(User.objects.count()),3)
             for j in range(0,3):
                 action = result[j]
                 
-                resultjson = {'title':action.title,'content':action.content, 'actionid':action.pk, 'avatarurl':action.firstPicture.url,'number_likes':Like.objects.filter(actionid=action.pk).count()}
+                resultjson = {'title':action.title,'content':action.content, 'actionid':action.pk, 'actionrurl':action.firstPicture.url,'number_likes':Like.objects.filter(actionid=action.pk).count()}
                 response_message.append(resultjson)
         #return HttpResponse(serializers.serialize("json", actions))
             response_message_json = {'status':"success",'action':response_message}
