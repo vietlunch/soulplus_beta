@@ -27,6 +27,7 @@ class UserProfile(models.Model):
     createdDate = models.DateTimeField(auto_now_add=True)
     last_active = models.DateTimeField(auto_now=True)
     birthday = models.DateTimeField(null=True, blank=True)
+    friends = models.ManyToManyField(User, related_name='friends')
     class Meta:
         verbose_name = "UserProfile"
         verbose_name_plural = "UserProfiles"
@@ -43,7 +44,7 @@ class Like(models.Model):
 class Report(models.Model):
     userid = models.IntegerField()
     actionid = models.IntegerField()
-    TYPES = (('I', 'Invalid'), ('T', 'Bad_Title'), ('C', 'Copyrigh'))
+    TYPES = (('I', 'Invalid'), ('T', 'Bad_Title'), ('C', 'Copyright'))
     report_type = models.CharField(max_length=1,choices = TYPES)
     content = models.TextField(max_length=1000,null=True,blank=False,verbose_name='Details')
     class Meta:
@@ -112,6 +113,14 @@ class Friend(models.Model):
     class Meta:
         verbose_name = "Friend"
         verbose_name_plural = "Friends"
+
+class Rating(models.Model):
+    actionid = models.IntegerField()
+    userid = models.IntegerField()
+    rating = models.IntegerField(null=True,blank=True)
+    class Meta:
+        verbose_name = "Friend"
+        verbose_name_plural = "Friends"
     
 
 class CalendarAction(models.Model):
@@ -126,6 +135,7 @@ class CalendarAction(models.Model):
 class PrivateGroup(models.Model):
     user_created = models.ForeignKey('UserProfile')
     action_related = models.ForeignKey('Action')
+    members = models.ManyToManyField('UserProfile', related_name='members')
     class Meta:
         verbose_name = "PrivateGroup"
         verbose_name_plural = "PrivateGroup"
@@ -182,11 +192,11 @@ class  Comment(models.Model):
    # showimage.allow_tags = True
 @python_2_unicode_compatible
 class Invitation(models.Model):
-    fromuser = models.ForeignKey('UserProfile',related_name='+')
-    touser =  models.ForeignKey('UserProfile',related_name='+')
+    fromuser = models.IntegerField()
+    touser =  models.IntegerField()
     content = models.TextField(max_length=2000)
     isaccept = models.BooleanField()
-    createDate = models.DateTimeField(auto_now_add=True,verbose_name='CreatedD')
+    createDate = models.DateTimeField(auto_now_add=True,verbose_name='createdate')
     class Meta:
         verbose_name = "Invitation"
         verbose_name_plural = "Invitations"
