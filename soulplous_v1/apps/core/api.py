@@ -314,8 +314,8 @@ class ListAction(APIView):
             userid = request.data['userid']
             sample = random.sample(xrange(Action.objects.count()),3)
             result = [Action.objects.all()[i] for i in sample] 
-            sampleusers = random.sample(xrange(UserProfile.objects.count()),5)
-            sampleuser_avatarurl = [UserProfile.objects.all[t].avatar.url for t in sampleusers]
+            sampleusers = random.sample(range(2,UserProfile.objects.count()),5)
+            sampleuser_avatarurl = [UserProfile.objects.get(pk=t).avatar.url for t in sampleusers]
             for j in range(0,3):
                 action = result[j]
                 #users_related = PrivateGroup.objects.filter(actionid=action.pk)                  
