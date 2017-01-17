@@ -133,8 +133,8 @@ class CalendarAction(models.Model):
         verbose_name_plural = "CalendarActions"
 
 class PrivateGroup(models.Model):
-    user_created = models.ForeignKey('UserProfile')
-    action_related = models.ForeignKey('Action')
+    userid = models.IntegerField(null=True,blank=True)
+    actionid = models.IntegerField(null=True,blank=True)
     members = models.ManyToManyField('UserProfile', related_name='members')
     class Meta:
         verbose_name = "PrivateGroup"
@@ -162,7 +162,7 @@ class ActionRefLink(models.Model):
 @python_2_unicode_compatible   
 class  Note(models.Model):
     noteby =  models.IntegerField(null=False,blank=False)
-    notein =  models.ForeignKey('Action',null=False, blank=False)
+    notein =  models.IntegerField(null=False, blank=False)
     content   =  models.TextField(max_length=2000)
     #childcomment = models.ManyToManyField('self')
     createDate = models.DateTimeField(auto_now_add=True,verbose_name='CreatedDate')
@@ -235,6 +235,7 @@ class Activity(models.Model):
 class Notification(models.Model):
     LIKED = 'L'
     COMMENTED_IN = 'C'
+    FRIEND_REQUESTED = 'F'
     ACCEPTED_INVITATION = 'A'
     ACTION_DEADLINE = 'D'
     ACTION_CLOSED = 'F'

@@ -8,7 +8,7 @@ from rest_framework.parsers import JSONParser
 
 import json
 import random
-from core.models import  UserProfile, Action, Notification, Comment, Like, PrivateGroup, CalendarAction, Friend
+from core.models import  *
 from django.contrib.auth.models import User
 from django.core import serializers
 from django.http import HttpResponse 
@@ -25,6 +25,7 @@ from allauth.socialaccount.helpers import complete_social_login
 import threading
 from django.core.files import File
 import datetime
+from rest_framework.authentication import SessionAuthentication
 
 
 class AccountSignup(APIView):
@@ -98,11 +99,15 @@ class AccountSignin(APIView):
             except User.DoesNotExist:
                 return Response({"error":"user_does_not_exist"},status=400)
 
+class EverybodyCanAuthentication(SessionAuthentication):
+    def authenticate(self, request):
+        return None
+
 class FacebookSignin(APIView):
-   # permission_classes = (AllowAny,)
+    permission_classes = (AllowAny,)
     
     # this is a public api!!!
-   # authentication_classes = (EverybodyCanAuthentication,)
+    authentication_classes = (EverybodyCanAuthentication,)
              
     def dispatch(self, *args, **kwargs):
         return super(FacebookSignin, self).dispatch(*args, **kwargs)
@@ -236,13 +241,16 @@ class CreateGroup(APIView):
         try:
             actionid = request.data["actionid"]
             userid = request.data["userid"]
-            members = request.POST.getlist["friends"]
-            PrivateGroup.objects.create(actionid=actionid,userid=userid)
+            members = request.data["friends"]
+            print len(members)
+            group = PrivateGroup.objects.create(actionid=actionid,userid=userid)
+            group.members.add(UserProfile.objects.get(pk=userid))
             if len(members) > 0:
                 for member in members:
-                    PrivateGroup.objects.filter(actionid=actionid,userid=userid).members.add(User.objects.get(members["userid"]))         
+                    group.members.add(UserProfile.objects.get(pk=member))         
             return Response(status=200,data={'status':"success"})
-        except:
+        except Exception as e:
+            print e
             return Response(status=400,data={'error': "fail"})
     
 class RatingAction(APIView):
@@ -261,9 +269,9 @@ class NoteAction(APIView):
         try:
             userid = request.data["userid"]
             actionid = request.data["actionid"]
-            starttime = request.data["datetime"]
+            content = request.data["content"]
             print userid, actionid
-            CalendarAction.objects.create(userid=userid,actionid=actionid,startDate = DateTime(starttime))
+            Note.objects.create(userid=userid,actionid=actionid,content=content)
             #t = threading.Thread(target=updatenotification(userid=userid,actionid=actionid))
             #t.start()
             return Response(status=200,data={'status':"success"})
@@ -308,12 +316,13 @@ class ListAction(APIView):
             sampleuser_avatarurl = [UserProfile.objects.get(pk=t).avatar.url for t in sampleusers]
             for j in range(0,3):
                 action = result[j]
-                try:
+                #users_related = PrivateGroup.objects.filter(actionid=action.pk)                  
+                try:               
                     Like.objects.get(actionid=action.pk,userid=userid)
-                    resultjson = {'Liked':True,'title':action.title,'content':action.content, 'actionid':action.pk, 'actionimagerurl':action.firstPicture.url,'number_likes':Like.objects.filter(actionid=action.pk).count(),'avatarurl':sampleuser_avatarurl}
+                    resultjson = {'Liked':True,'title':action.title,'content':action.content, 'actionid':action.pk, 'actionimagerurl':action.firstPicture.url,'number_likes':Like.objects.filter(actionid=action.pk).count(),'avatarurl':sampleuser_avatarurl,'number_more':random.randint(5,1000)}
                     response_message.append(resultjson)
                 except:
-                    resultjson = {'Liked':False,'title':action.title,'content':action.content, 'actionid':action.pk, 'actionimagerurl':action.firstPicture.url,'number_likes':Like.objects.filter(actionid=action.pk).count(),'avatarurl':sampleuser_avatarurl}
+                    resultjson = {'Liked':False,'title':action.title,'content':action.content, 'actionid':action.pk, 'actionimagerurl':action.firstPicture.url,'number_likes':Like.objects.filter(actionid=action.pk).count(),'avatarurl':sampleuser_avatarurl,'number_more':random.randint(5,1000)}
                     response_message.append(resultjson)
             #return HttpResponse(serializers.serialize("json", actions))
             response_message_json = {'status':"success",'action':response_message}
@@ -342,9 +351,10 @@ class GetNotifications(APIView):
 class CreateFriend(APIView):
     def post(self, request, format=None):
         try:
-            UserProfile.objects.get(pk=request.data['userid']).friends.add(UserProfile.objects.get(pk=friendid))
+            UserProfile.objects.get(pk=request.data['userid']).friends.add(User.objects.get(pk=request.data['friendid']))
             return Response({'status':"success"},status=200)
-        except:
+        except Exception as e:
+            print e
             return Response({'status':"fail"},status=401)
 def updatenotification(userid,actionid):
     try:
