@@ -127,6 +127,8 @@ class FacebookSignin(APIView):
         
             # add or update the user into users table
             ret = complete_social_login(request, login)
+            preferred_avatar_size_pixels=256
+            picture_url = "http://graph.facebook.com/{0}/picture?width={1}&height={1}".format(sociallogin.account.uid, preferred_avatar_size_pixels)
  
             # if we get here we've succeeded
             return Response(status=200, data={
@@ -312,7 +314,7 @@ class ListAction(APIView):
             userid = request.data['userid']
             sample = random.sample(xrange(Action.objects.count()),3)
             result = [Action.objects.all()[i] for i in sample] 
-            sampleusers = random.sample(xrange(User.objects.count()),5)
+            sampleusers = random.sample(xrange(UserProfile.objects.count()),5)
             sampleuser_avatarurl = [UserProfile.objects.get(pk=t).avatar.url for t in sampleusers]
             for j in range(0,3):
                 action = result[j]
