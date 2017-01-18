@@ -6,6 +6,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.renderers import JSONRenderer
 from rest_framework.parsers import JSONParser
 
+from django.contrib.gis import geos
+from django.contrib.gis import measure
+
 import json
 import random
 from core.models import  *
@@ -315,14 +318,58 @@ class MyLikedActions(APIView):
 class GetMyAction(APIView):
     def post(self, request, format=None):
         return
-    
-class CreateAction(APIView):
+
+def updatenotification(userid,mapactionid):
+    try:
+        friends = UserProfile.objects.get(pk=userid).friends
+        print "number of friend", friends.count()
+        for friend in friends:
+            print "creating notification"
+            Notification.objects.create(userid=friend.friendid,notificationtype=Notification.FRIEND_CREATE_MAP_ACTION,friend_create_map_id=userid,actionmapid=mapactionid)
+            print "success"
+    except Exception as e:
+        print e   
+           
+ 
+class CreateMapAction(APIView):
     def post(self, request, format=None):
-        return
-    
+        try:
+            userid = request.data['userid']
+            title = request.data['title']
+            content = request.data['content']
+            long = request.data['long']
+            lat = request.data['lat']
+            point = geos.fromstr("POINT(%s %s)" % (long, lat))
+            timefromuser = request.data['time']
+            given_file = request.FILES.get('file')
+            mapaction = MapAction(userid=userid,title=title,content=content,location=point,timefromuser=datetime.datetime.strptime(timefromuser, "%Y-%m-%d %H:%M"))
+            mapaction.save()
+            mapaction.firstPicture.save(name = str(mapactionid) + '.jpg', content = File(given_file))
+            t = threading.Thread(target=updatenotification(userid=userid,mapactionid=mapaction.pk))
+            t.start()
+            return Response(status=200,data={'status':"success"})
+        except Exception as e:
+            print e
+            return Response(status=401 ,data={'status': "fail"})
+        
 class GetNearbyAction(APIView):
     def post(self, request, format=None):
-        return
+        try:
+            long = request.data['long']
+            lat = request.data['lat']
+            current_point = geos.fromstr("POINT(%s %s)" % (long, lat))
+            distance_from_point = {'km': 10}
+            mapactions = models.MapAction.gis.filter(location__distance_lte=(current_point, measure.D(**distance_from_point)))
+            mapactions = mapactions.distance(current_point).order_by('distance')
+            response_message = []
+            sampleusers = random.sample(range(2,UserProfile.objects.count()),5)
+            sampleuser_avatarurl = [UserProfile.objects.get(pk=t).avatar.url for t in sampleusers]
+            for mapaction in mapactions:
+                response_json = {"mapactionid":mapaction.pk,"title":mapaction.title,"content":mapaction.content,"imageurl":mapaction.firstPicture.url}
+            return Response(status=200,data={'status':"success"})
+        except Exception as e:
+            print e
+            return Response(status=401 ,data={'status': "fail"})
     
 class SignOut(APIView):
     def post(self, request, format=None):
@@ -372,7 +419,16 @@ class GetNotifications(APIView):
         except:
             return Response(status=400 ,data={'success': False})
     
-
+def updatenotification_friend_request(userid,invitation):
+    try:
+       # friends = UserProfile.objects.get(pk=userid)
+       # print "number of friend", friends.count()
+       
+        Notification.objects.create(userid=userid,notificationtype=Notification.FRIEND_REQUESTED,invitation=invitation)
+        print "success"
+    except Exception as e:
+        print e   
+        
 class CreateFriend(APIView):
     def post(self, request, format=None):
         try:
@@ -381,6 +437,16 @@ class CreateFriend(APIView):
         except Exception as e:
             print e
             return Response({'status':"fail"},status=401)
+        
+class GetFriends(APIView):
+    def post(self, request, format=None):
+        try:
+            UserProfile.objects.get(pk=request.data['userid']).friends.add(User.objects.get(pk=request.data['friendid']))
+            return Response({'status':"success"},status=200)
+        except Exception as e:
+            print e
+            return Response({'status':"fail"},status=401)
+
 def updatenotification(userid,actionid):
     try:
         friends = UserProfile.objects.get(pk=userid).friends
@@ -390,7 +456,8 @@ def updatenotification(userid,actionid):
             Notification.objects.create(userid=friend.friendid,notificationtype=Notification.LIKED,friend_like_id=userid,actionlikedid=actionid)
             print "success"
     except Exception as e:
-        print e      
+        print e   
+           
 class LikeAction(APIView):
     def post(self, request, format=None):
         try:
@@ -467,16 +534,13 @@ class SendInvitation(APIView):
         except Exception as e:
             print e
             return Response(status=400,data={'error': "fail"})
-
 class AcceptInvitation(APIView):
     def post(self, request, format=None):
         try:
-            userid = request.data["userid"]
-            actionid = request.data["actionid"]
-            print userid 
-            Like.objects.create(userid=int(userid),actionid=int(actionid))
-            t = threading.Thread(target=updatenotification(userid=userid,actionid=actionid))
-            t.start()
+            invitationid = request.data["invitationid"]
+            invitation = Invitation.objects.get(pk=invitationid)
+            invitation.isaccept = True
+            invitation.save()
             return Response(status=200,data={'status':"success"})
         except Exception as e:
             print e

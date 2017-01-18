@@ -34,6 +34,7 @@ urlpatterns = [
     url(r'^api/v1/sendinvitation/', apps.core.api.SendInvitation.as_view()),
     url(r'^api/v1/acceptinvitation/', apps.core.api.AcceptInvitation.as_view()),
     url(r'^api/v1/createfriend/', apps.core.api.CreateFriend.as_view()),
+    url(r'^api/v1/getfriends/', apps.core.api.GetFriends.as_view()),
 ]
 
 if settings.DEBUG:

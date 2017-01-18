@@ -1,5 +1,8 @@
 from django.conf import settings
 from django.db import models
+from django.contrib.gis.db import models as gis_models
+from django.contrib.gis import geos
+
 from django.contrib.auth.models import User
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.safestring import mark_safe 
@@ -37,6 +40,7 @@ class UserProfile(models.Model):
 class Like(models.Model):
     userid = models.IntegerField()
     actionid = models.IntegerField()
+    mapactionid = models.IntegerField()
     class Meta:
         verbose_name = "Like"
         verbose_name_plural = "Likes"
@@ -50,7 +54,15 @@ class Report(models.Model):
     class Meta:
         verbose_name = "Like"
         verbose_name_plural = "Likes"
-
+        
+class ActionImage():
+    image = models.ImageField(upload_to='action/imagealbums',null=True, blank=True)
+    actionid = models.IntegerField('Action',null=True, blank=True)
+    mapactionid = models.IntegerField('Action',null=True, blank=True)
+    class Meta:
+        verbose_name = "MapAction"
+        verbose_name_plural = "MapActions"
+        
 @python_2_unicode_compatible
 class Action(models.Model):
     title = models.CharField(max_length=1024, null=True, blank=False,verbose_name=u'Title')
@@ -78,25 +90,29 @@ class Action(models.Model):
         else:
             return 'no image'
     showimage.short_decription = 'imagedisplay'
-    
+
 @python_2_unicode_compatible
-class UserAction(models.Model):
+class MapAction(models.Model):
+    userid = models.IntegerField(null=True,blank=True)
     title = models.CharField(max_length=1024, null=True, blank=False,verbose_name=u'Title')
-    firstPicture = models.ImageField(upload_to='action/images', blank=True)
+    firstPicture = models.ImageField(upload_to='mapaction/images', blank=True, default='users/avatars/noimage.png')
     content = models.TextField(max_length=30000,null=True,blank=False,verbose_name='Details')
     createDate = models.DateTimeField(auto_now_add=True,verbose_name='CreatedDate',null=True)
-    startDate = models.DateTimeField(null=True, blank=True,verbose_name='StartDate')
-    endDate = models.DateTimeField(null=True, blank=True,verbose_name='EndDate')
+    timefromuser = models.DateTimeField(null=True, blank=True,verbose_name='StartDate')
     modified =  models.DateTimeField(auto_now=True,verbose_name='timeUpdated',null=True)
     #imageurl = u'<img src="%s" />' % (self.firstPicture.url)
-    author = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE,null=True,blank=True, related_name='creator')
+    author = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE,null=True,blank=True, related_name='author')
     isverified = models.BooleanField(verbose_name='isverified',default=False)
     isactive = models.BooleanField(verbose_name='isActive',default=True)
-    lat = models.FloatField(null=True, blank=True)
-    long = models.FloatField(null=True, blank=True)
+    location = gis_models.PointField(u"longitude/latitude",geography=True, blank=True, null=True)
+    
+    gis = gis_models.GeoManager()
+    objects = models.Manager()
+    #lat = models.FloatField(null=True, blank=True)
+    #long = models.FloatField(null=True, blank=True)
     class Meta:
-        verbose_name = "Action"
-        verbose_name_plural = "Actions"
+        verbose_name = "MapAction"
+        verbose_name_plural = "MapActions"
     def __str__(self):
         return self.title
 
@@ -106,13 +122,14 @@ class UserAction(models.Model):
         else:
             return 'no image'
     showimage.short_decription = 'imagedisplay'
+
     
-class Friend(models.Model):
+class FriendRequest(models.Model):
     friendid = models.IntegerField()
     userid = models.IntegerField()
     class Meta:
-        verbose_name = "Friend"
-        verbose_name_plural = "Friends"
+        verbose_name = "FriendRequest"
+        verbose_name_plural = "FriendRequests"
 
 class Rating(models.Model):
     actionid = models.IntegerField()
@@ -159,6 +176,7 @@ class ActionRefLink(models.Model):
 
     def __str__(self):
         return self.link
+    
 @python_2_unicode_compatible   
 class  Note(models.Model):
     userid =  models.IntegerField(null=False,blank=False)
@@ -237,6 +255,7 @@ class Notification(models.Model):
     LIKED = 'L'
     COMMENTED_IN = 'C'
     FRIEND_REQUESTED = 'F'
+    FRIEND_CREATE_MAP_ACTION = 'M'
     ACCEPTED_INVITATION = 'A'
     ACTION_DEADLINE = 'D'
     ACTION_CLOSED = 'F'
@@ -246,7 +265,9 @@ class Notification(models.Model):
     NOTIFICATION_TYPES = (
         (LIKED, 'Liked'),
         (COMMENTED_IN, 'Commented'),
+        (FRIEND_REQUESTED, 'FriendRequest'),
         (RECEIVED_INVITATION, 'Invitation'),
+        (FRIEND_CREATE_MAP_ACTION , 'FriendCreateMapAction')
         (ACCEPTED_INVITATION, 'Accepted'),
         (ACTION_DEADLINE, 'Deadlined'),
         (ACTION_CLOSED, 'ClosedAction'),
@@ -254,6 +275,8 @@ class Notification(models.Model):
         )
     userid = models.IntegerField(null=True, blank=True)
     friend_like_id = models.IntegerField(null=True, blank=True)
+    friend_create_map_id = models.IntegerField(null=True, blank=True)
+    actionmapid = models.IntegerField(null=True, blank=True)
     #invitation_from_id = models.IntegerField(null=True, blank=True)
     user_comment_id = models.IntegerField(null=True, blank=True)
     actionlikedid = models.IntegerField(null=True, blank=True)
@@ -265,6 +288,7 @@ class Notification(models.Model):
     comment = models.ForeignKey('Comment',null=True, blank=True)
     isread = models.BooleanField(default=False)
     invitation = models.ForeignKey('Invitation',null=True, blank=True)
+    friendrequest = models.ForeignKey('FriendRequest',null=True, blank=True)
     class Meta:
         verbose_name = 'Notification'
         verbose_name_plural = 'Notifications'

@@ -5,6 +5,8 @@ from .models import *
 from django import forms
 from django.contrib.admin import SimpleListFilter
 
+from django.contrib.gis import admin
+
 admin.site.unregister(User)
 
 def verified(modeladmin, request, queryset):
@@ -31,6 +33,16 @@ class VerifiedFilter(SimpleListFilter):
         if self.value() == 2:
             return queryset
         return queryset.filter(isverified=self.value())
+
+class MapActionAdmin(admin.GeoModelAdmin):
+    model = MapAction
+    search_fields = ['title','content']
+    list_display = ['title','content','firstPicture','location']
+    #readonly_fields = ['uuid','slug',]
+
+admin.site.register(MapAction, MapActionAdmin)
+
+    
 class TitleAdminForm(forms.ModelForm):
     class Meta:
         widgets = { 'title': forms.TextInput(attrs={'size': 80})}
