@@ -365,7 +365,13 @@ class GetNearbyAction(APIView):
             sampleusers = random.sample(range(2,UserProfile.objects.count()),5)
             sampleuser_avatarurl = [UserProfile.objects.get(pk=t).avatar.url for t in sampleusers]
             for mapaction in mapactions:
-                response_json = {"mapactionid":mapaction.pk,"title":mapaction.title,"content":mapaction.content,"imageurl":mapaction.firstPicture.url}
+                try:
+                    Like.objects.get(actionid=action.pk,userid=userid)
+                    response_json = {'Liked':True,'mapactionid':mapaction.pk,'title':mapaction.title,'content':mapaction.content,'imageurl':mapaction.firstPicture.url,'number_likes':Like.objects.filter(mapactionid=mapaction.pk).count(),'avatarurl':sampleuser_avatarurl,'number_more':random.randint(5,1000)}
+                    response_message.append(response_json)
+                except:
+                    response_json = {'Liked':False,'mapactionid':mapaction.pk,'title':mapaction.title,'content':mapaction.content,'imageurl':mapaction.firstPicture.url,'number_likes':Like.objects.filter(mapactionid=mapaction.pk).count(),'avatarurl':sampleuser_avatarurl,'number_more':random.randint(5,1000)}
+                    response_message.append(response_json)
             return Response(status=200,data={'status':"success"})
         except Exception as e:
             print e
@@ -408,16 +414,14 @@ class GetNotifications(APIView):
         userid = request.data['userid']
         try:
             notifications = Notification.objects.filter(userid=userid)
-            ressult = []
-            notification_json = {} 
+            result = []
+            
             for notification in notifications:
-                if notification.notificationtype == 'L':
-                    notification_json = {'notificationtype':notification.notificationtype,'friendlike':User.objects.get(pk=notification.friend_like_id).fullname}
-                if notification.notificationtype == "C":
-                    notification_json = {'notificationtype':notification.notificationtype,'friendlike':User.objects.get(pk=notification.friend_like_id).fullname} 
-            return Response(status=200,data={"success":True})
+                 notification_json = {'notification':notification} 
+                 result.append(notification_json)
+            return Response(status=200,data={'status':"success",'result':result})
         except:
-            return Response(status=400 ,data={'success': False})
+            return Response(status=400 ,data={'status': "fail"})
     
 def updatenotification_friend_request(userid,invitation):
     try:
