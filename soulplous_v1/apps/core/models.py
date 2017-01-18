@@ -161,8 +161,8 @@ class ActionRefLink(models.Model):
         return self.link
 @python_2_unicode_compatible   
 class  Note(models.Model):
-    noteby =  models.IntegerField(null=False,blank=False)
-    notein =  models.IntegerField(null=False, blank=False)
+    userid =  models.IntegerField(null=False,blank=False)
+    actionid =  models.IntegerField(null=False, blank=False)
     content   =  models.TextField(max_length=2000)
     #childcomment = models.ManyToManyField('self')
     createDate = models.DateTimeField(auto_now_add=True,verbose_name='CreatedDate')
