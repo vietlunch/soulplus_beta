@@ -40,7 +40,7 @@ class UserProfile(models.Model):
 class Like(models.Model):
     userid = models.IntegerField()
     actionid = models.IntegerField()
-    mapactionid = models.IntegerField()
+    mapactionid = models.IntegerField(null=True, blank=True)
     class Meta:
         verbose_name = "Like"
         verbose_name_plural = "Likes"
@@ -101,7 +101,7 @@ class MapAction(models.Model):
     timefromuser = models.DateTimeField(null=True, blank=True,verbose_name='StartDate')
     modified =  models.DateTimeField(auto_now=True,verbose_name='timeUpdated',null=True)
     #imageurl = u'<img src="%s" />' % (self.firstPicture.url)
-    author = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE,null=True,blank=True, related_name='author')
+    author = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE,null=True,blank=True, related_name='mapauthor')
     isverified = models.BooleanField(verbose_name='isverified',default=False)
     isactive = models.BooleanField(verbose_name='isActive',default=True)
     location = gis_models.PointField(u"longitude/latitude",geography=True, blank=True, null=True)
@@ -267,7 +267,7 @@ class Notification(models.Model):
         (COMMENTED_IN, 'Commented'),
         (FRIEND_REQUESTED, 'FriendRequest'),
         (RECEIVED_INVITATION, 'Invitation'),
-        (FRIEND_CREATE_MAP_ACTION , 'FriendCreateMapAction')
+        (FRIEND_CREATE_MAP_ACTION , 'FriendCreateMapAction'),
         (ACCEPTED_INVITATION, 'Accepted'),
         (ACTION_DEADLINE, 'Deadlined'),
         (ACTION_CLOSED, 'ClosedAction'),
