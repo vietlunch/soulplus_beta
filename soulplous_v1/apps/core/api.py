@@ -243,9 +243,10 @@ class ReportAction(APIView):
             actionid = request.data["actionid"]
             userid = request.data["userid"]
             reporttype = request.data["reporttype"]
-            Report.objects.create(actionid=actionid,userid=userid,reporttype=reporttype)
+            Report.objects.create(actionid=actionid,userid=userid,report_type=reporttype)
             return Response(status=200,data={'status':"success"})
-        except:
+        except Exception as e:
+            print e
             return Response(status=400,data={'error': "fail"})
     
 class CreateGroup(APIView):
