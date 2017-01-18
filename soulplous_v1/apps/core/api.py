@@ -194,6 +194,16 @@ class GetUserProfile(APIView):
         except Exception as e: 
             print e
             return Response(status=400,data={'error': "fail"})
+
+class GetAction(APIView):
+    def post(self, request, format=None):
+        try:
+            actionid = request.data["actionid"]
+            action = Action.objects.get(pk=actionid)
+            return Response(status=200,data={'status':"success",'actionid':actionid,'title':action.title,'imageurl':action.firstPicture.url,'content':action.content})
+        except Exception as e: 
+            print e
+            return Response(status=400,data={'error': "fail"})
     
 class SetCalendarAction(APIView):
     def post(self, request, format=None):
@@ -219,7 +229,7 @@ class GetCalendarAction(APIView):
             #t = threading.Thread(target=updatenotification(userid=userid,actionid=actionid))
             #t.start()
             for result in results:
-                result_json={"actionid":result.actionid,"datetime":str(result.startDate)}
+                result_json={"actionid":result.actionid,"datetime":str(result.startDate),"title":Action.Objects.get(pk=result.actionid).title}
                 results_json.append(result_json)
             return Response(status=200,data={'status': "success","calendaraction":results_json})
         except Exception as e:

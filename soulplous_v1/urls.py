@@ -23,6 +23,7 @@ urlpatterns = [
     url(r'^api/v1/calendaraction/', apps.core.api.SetCalendarAction.as_view()),
     url(r'^api/v1/getcalendaraction/', apps.core.api.GetCalendarAction.as_view()),
     url(r'^api/v1/noteaction/', apps.core.api.NoteAction.as_view()),
+    url(r'^api/v1/getaction/', apps.core.api.GetAction.as_view()),
     url(r'^api/v1/creategroup/', apps.core.api.CreateGroup.as_view()),
     url(r'^api/v1/createaction/', apps.core.api.CreateAction.as_view()),
     url(r'^api/v1/getmylikedactions/', apps.core.api.MyLikedActions.as_view()),
