@@ -383,7 +383,7 @@ class CreateFriend(APIView):
             return Response({'status':"fail"},status=401)
 def updatenotification(userid,actionid):
     try:
-        friends = UserProfile.objects.get(pk=userid)
+        friends = UserProfile.objects.get(pk=userid).friends
         print "number of friend", friends.count()
         for friend in friends:
             print "creating notification"
@@ -391,7 +391,6 @@ def updatenotification(userid,actionid):
             print "success"
     except Exception as e:
         print e      
-        return Response({'status':"fail"},status=401)
 class LikeAction(APIView):
     def post(self, request, format=None):
         try:
@@ -444,20 +443,27 @@ class CommentGroup(APIView):
             print e
             return Response(status=400,data={'error': "fail"})
 
+def updatenotification_invitation(userid,invitation):
+    try:
+       # friends = UserProfile.objects.get(pk=userid)
+       # print "number of friend", friends.count()
+       
+        Notification.objects.create(userid=userid,notificationtype=Notification.RECEIVED_INVITATION,invitation=invitation)
+        print "success"
+    except Exception as e:
+        print e      
+        
 class SendInvitation(APIView):
     def post(self, request, format=None):
         try:
             fromuserid = request.data["fromuserid"]
-            touserids = request.POST.getlist["touserid"]
+            touserid = request.data["touserid"]
+            actionid = request.data["actionid"]
             content = request.data["content"]
-            if len(touserid) > 0:
-                for touser in touserids:
-                    Invitation.objects.create(fromuser=fromuserid,touser=touser,content=content,isaccept=False)
-                    t = threading.Thread(target=updatenotification(userid=userid,actionid=actionid))
-                    t.start()
-                return Response(status=200,data={'status':"success"})
-            else:
-                return Response(status=400,data={'error': "missing_params"})
+            invitation = Invitation.objects.create(fromuser=fromuserid,touser=touserid,actionid=actionid,content=content,isaccept=False)
+            t = threading.Thread(target=updatenotification_invitation(touserid,invitation=invitation))
+            t.start()
+            return Response(status=200,data={'status':"success"})
         except Exception as e:
             print e
             return Response(status=400,data={'error': "fail"})

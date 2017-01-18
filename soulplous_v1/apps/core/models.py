@@ -192,8 +192,9 @@ class  Comment(models.Model):
    # showimage.allow_tags = True
 @python_2_unicode_compatible
 class Invitation(models.Model):
-    fromuser = models.IntegerField()
-    touser =  models.IntegerField()
+    fromuser = models.IntegerField(null=True, blank=True)
+    touser =  models.IntegerField(null=True, blank=True)
+    actionid = models.IntegerField(null=True, blank=True)
     content = models.TextField(max_length=2000)
     isaccept = models.BooleanField()
     createDate = models.DateTimeField(auto_now_add=True,verbose_name='createdate')
@@ -253,6 +254,7 @@ class Notification(models.Model):
         )
     userid = models.IntegerField(null=True, blank=True)
     friend_like_id = models.IntegerField(null=True, blank=True)
+    #invitation_from_id = models.IntegerField(null=True, blank=True)
     user_comment_id = models.IntegerField(null=True, blank=True)
     actionlikedid = models.IntegerField(null=True, blank=True)
     calendaractionid = models.IntegerField(null=True, blank=True)
@@ -262,7 +264,7 @@ class Notification(models.Model):
     notificationtype = models.CharField(max_length=1, choices=NOTIFICATION_TYPES)
     comment = models.ForeignKey('Comment',null=True, blank=True)
     isread = models.BooleanField(default=False)
-    inviation = models.ForeignKey('Invitation',null=True, blank=True)
+    invitation = models.ForeignKey('Invitation',null=True, blank=True)
     class Meta:
         verbose_name = 'Notification'
         verbose_name_plural = 'Notifications'
