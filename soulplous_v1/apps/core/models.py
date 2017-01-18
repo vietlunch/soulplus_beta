@@ -14,7 +14,7 @@ class UserProfile(models.Model):
     """
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     phonenumber = models.CharField(max_length=20,null=True)
-    fullname = models.TextField(max_length=50,null=True,blank=False,verbose_name='fullname')
+    fullname = models.CharField(max_length=50,null=True,blank=True,verbose_name='fullname')
     GENDER_CHOICES = (
         ('M', 'Male'),
         ('F', 'Female'),

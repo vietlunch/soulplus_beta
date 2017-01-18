@@ -176,11 +176,23 @@ class UpdateProfile(APIView):
             address = request.data["address"]
             birthday = request.data["birthday"]
             password = request.data["password"]
+            print fullname
             if password != "":
-                UserProfile.objects.get(pk=userid).update(fullname=fullname,gender=gender,address=address,birthday=datetime.datetime.strptime(birthday, "%Y-%m-%d %H:%M"))
+                user = UserProfile.objects.get(pk=userid)
+                user.fullname = fullname
+                user.gender = gender
+                user.address = address
+                user.birthday = datetime.datetime.strptime(birthday, "%Y-%m-%d")
+                user.save()
                 return Response(status=200,data={'status': "success"})
             else:
-                UserProfile.objects.get(pk=userid).update(fullname=fullname,gender=gender,address=address,birthday=datetime.datetime.strptime(birthday, "%Y-%m-%d %H:%M"),password=password)
+                user = UserProfile.objects.get(pk=userid)
+                user.fullname = fullname
+                user.gender = gender
+                user.address = address
+                user.birthday = datetime.datetime.strptime(birthday, "%Y-%m-%d")
+                password = password
+                user.save()
                 return Response(status=200,data={'status': "success"})
         except Exception as e:
             print e
