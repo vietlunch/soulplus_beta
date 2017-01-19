@@ -358,7 +358,7 @@ class GetNearbyAction(APIView):
             lat = request.data['lat']
             current_point = geos.fromstr("POINT(%s %s)" % (long, lat))
             distance_from_point = {'km': 10000}
-            mapactions = models.MapAction.gis.filter(location__distance_lte=(current_point, measure.D(**distance_from_point)))
+            mapactions = MapAction.gis.filter(location__distance_lte=(current_point, measure.D(**distance_from_point)))
             mapactions = mapactions.distance(current_point).order_by('distance')
             response_message = []
             sampleusers = random.sample(range(2,UserProfile.objects.count()),5)
