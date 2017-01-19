@@ -319,7 +319,7 @@ class GetMyAction(APIView):
     def post(self, request, format=None):
         return
 
-def updatenotification(userid,mapactionid):
+def updatenotification_mapaction(userid,mapactionid):
     try:
         friends = UserProfile.objects.get(pk=userid).friends
         print "number of friend", friends.count()
@@ -342,10 +342,9 @@ class CreateMapAction(APIView):
             point = geos.fromstr("POINT(%s %s)" % (long, lat))
             timefromuser = request.data['time']
             given_file = request.FILES.get('file')
-            mapaction = MapAction(userid=userid,title=title,content=content,location=point,timefromuser=datetime.datetime.strptime(timefromuser, "%Y-%m-%d %H:%M"))
-            mapaction.save()
+            mapaction = MapAction.objects.create(userid=userid,title=title,content=content,location=point,timefromuser=datetime.datetime.strptime(timefromuser, "%Y-%m-%d %H:%M"))
             mapaction.firstPicture.save(name = str(mapaction.pk) + '.jpg', content = File(given_file))
-            t = threading.Thread(target=updatenotification(userid=userid,mapactionid=mapaction.pk))
+            t = threading.Thread(target=updatenotification_mapaction(userid=userid,mapactionid=mapaction.pk))
             t.start()
             return Response(status=200,data={'status':"success"})
         except Exception as e:
@@ -358,7 +357,7 @@ class GetNearbyAction(APIView):
             long = request.data['long']
             lat = request.data['lat']
             current_point = geos.fromstr("POINT(%s %s)" % (long, lat))
-            distance_from_point = {'km': 10}
+            distance_from_point = {'km': 10000}
             mapactions = models.MapAction.gis.filter(location__distance_lte=(current_point, measure.D(**distance_from_point)))
             mapactions = mapactions.distance(current_point).order_by('distance')
             response_message = []
