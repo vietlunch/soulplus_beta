@@ -26,6 +26,7 @@ urlpatterns = [
     url(r'^api/v1/noteaction/', apps.core.api.NoteAction.as_view()),
     url(r'^api/v1/ratingaction/', apps.core.api.RatingAction.as_view()),
     url(r'^api/v1/getaction/', apps.core.api.GetAction.as_view()),
+    url(r'^api/v1/getnearbyaction/', apps.core.api.GetNearbyAction.as_view()),
     url(r'^api/v1/creategroup/', apps.core.api.CreateGroup.as_view()),
     url(r'^api/v1/createaction/', apps.core.api.CreateMapAction.as_view()),
     url(r'^api/v1/getmylikedactions/', apps.core.api.MyLikedActions.as_view()),

@@ -344,7 +344,7 @@ class CreateMapAction(APIView):
             given_file = request.FILES.get('file')
             mapaction = MapAction(userid=userid,title=title,content=content,location=point,timefromuser=datetime.datetime.strptime(timefromuser, "%Y-%m-%d %H:%M"))
             mapaction.save()
-            mapaction.firstPicture.save(name = str(mapactionid) + '.jpg', content = File(given_file))
+            mapaction.firstPicture.save(name = str(mapaction.pk) + '.jpg', content = File(given_file))
             t = threading.Thread(target=updatenotification(userid=userid,mapactionid=mapaction.pk))
             t.start()
             return Response(status=200,data={'status':"success"})
