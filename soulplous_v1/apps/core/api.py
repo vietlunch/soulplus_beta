@@ -323,7 +323,7 @@ def updatenotification_mapaction(userid,mapactionid):
     try:
         friends = UserProfile.objects.get(pk=userid).friends
         print "number of friend", friends.count()
-        for friend in friends:
+        for friend in friends.all():
             print "creating notification"
             Notification.objects.create(userid=friend.friendid,notificationtype=Notification.FRIEND_CREATE_MAP_ACTION,friend_create_map_id=userid,actionmapid=mapactionid)
             print "success"
