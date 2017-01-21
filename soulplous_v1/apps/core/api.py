@@ -48,14 +48,14 @@ class AccountSignup(APIView):
                         else:
                             newuser = User.objects.create_user(username=request.data['phonenumber'],password=request.data['password'])
                             UserProfile.objects.create(user=newuser,phonenumber=request.data['phonenumber'])
-                            return Response({'status':"success",'userid':newuser.pk}, status=status.HTTP_200_OK)
+                            return Response({'status':0,'userid':newuser.pk}, status=status.HTTP_200_OK)
                     if request.data['signup_type'] == "email":
                         if User.objects.filter(email = request.data['email']).exists():
                             return Response({'status':'email_existed'},status=801)
                         else:
                             newuser = User.objects.create_user(username=request.data['email'],email=request.data['email'],password=request.data['password'])
                             UserProfile.objects.create(user=newuser)
-                            return Response({'status':"success",'userid':newuser.pk}, status=status.HTTP_200_OK)
+                            return Response({'status':0,'userid':newuser.pk}, status=status.HTTP_200_OK)
                 else: 
                     return Response({'error': "missing_or_invalid_params"}, status=402)
             else:
@@ -81,7 +81,7 @@ class AccountSignin(APIView):
                 return Response({"error":"Invalid_password_or_email"}, status=status.HTTP_400_BAD_REQUEST)
             try:
                 if User.objects.get(email=emailinput).check_password(passwordinput):
-                    return Response({'status':"success" ,'userid':User.objects.get(email=emailinput).pk}, status=status.HTTP_200_OK)
+                    return Response({'status':0 ,'userid':User.objects.get(email=emailinput).pk}, status=status.HTTP_200_OK)
 
                 else:
             
@@ -95,7 +95,7 @@ class AccountSignin(APIView):
                 return Response({"error":"invalid_params"},status=401)
             try:
                 if User.objects.get(username=phonenumber).check_password(password):
-                    return Response({'status':"success" ,'userid':User.objects.get(username=phonenumber).pk}, status=status.HTTP_200_OK)
+                    return Response({'status':0 ,'userid':User.objects.get(username=phonenumber).pk}, status=status.HTTP_200_OK)
 
                 else:
                     return Response({'status':"password_incorrect"}, status=status.HTTP_200_OK)
@@ -142,7 +142,7 @@ class FacebookSignin(APIView):
         except Exception as e:
             print e
             return Response(status=401 ,data={
-                'status': "fail",
+                'status':1,
                 'error': "Bad_Access_Token",
             })
 
@@ -168,7 +168,7 @@ class UploadAvatar(APIView):
             return Response(status=200,data={'status': "success"})
         except Exception as e:
             print e
-            return Response(status=400,data={'error': "fail"})
+            return Response(status=400,data={'status':1})
     
 class UpdateProfile(APIView):
     def post(self, request, format=None):
@@ -199,26 +199,26 @@ class UpdateProfile(APIView):
                 return Response(status=200,data={'status': "success"})
         except Exception as e:
             print e
-            return Response(status=400,data={'error': "fail"})
+            return Response(status=400,data={'status':1})
 class GetUserProfile(APIView):
     def post(self, request, format=None):
         try:
             userid = request.data["userid"]
             user = UserProfile.objects.get(pk=userid)
-            return Response(status=200,data={'status':"success",'userid':userid,'fullname':user.fullname,'gender':user.gender,'address':user.address,'birthday':str(user.birthday)})
+            return Response(status=200,data={'status':0,'userid':userid,'fullname':user.fullname,'gender':user.gender,'address':user.address,'birthday':str(user.birthday)})
         except Exception as e: 
             print e
-            return Response(status=400,data={'error': "fail"})
+            return Response(status=400,data={'status':1})
 
 class GetAction(APIView):
     def post(self, request, format=None):
         try:
             actionid = request.data["actionid"]
             action = Action.objects.get(pk=actionid)
-            return Response(status=200,data={'status':"success",'actionid':actionid,'title':action.title,'imageurl':action.firstPicture.url,'content':action.content})
+            return Response(status=200,data={'status':0,'actionid':actionid,'title':action.title,'imageurl':action.firstPicture.url,'content':action.content})
         except Exception as e: 
             print e
-            return Response(status=400,data={'error': "fail"})
+            return Response(status=400,data={'status':1})
     
 class SetCalendarAction(APIView):
     def post(self, request, format=None):
@@ -230,10 +230,10 @@ class SetCalendarAction(APIView):
             CalendarAction.objects.create(userid=userid,actionid=actionid,startDate = datetime.datetime.strptime(starttime, "%Y-%m-%d %H:%M"))
             #t = threading.Thread(target=updatenotification(userid=userid,actionid=actionid))
             #t.start()
-            return Response(status=200,data={'status':"success"})
+            return Response(status=200,data={'status':0})
         except Exception as e:
             print e
-            return Response(status=400,data={'error': "fail"})
+            return Response(status=400,data={'status':1})
 class GetCalendarAction(APIView):
     def post(self, request, format=None):
         try:
@@ -249,7 +249,7 @@ class GetCalendarAction(APIView):
             return Response(status=200,data={'status': "success","calendaraction":results_json})
         except Exception as e:
             print e
-            return Response(status=400,data={'error': "fail"})
+            return Response(status=400,data={'status':1})
 
     
 class ReportAction(APIView):
@@ -259,10 +259,10 @@ class ReportAction(APIView):
             userid = request.data["userid"]
             reporttype = request.data["reporttype"]
             Report.objects.create(actionid=actionid,userid=userid,report_type=reporttype)
-            return Response(status=200,data={'status':"success"})
+            return Response(status=200,data={'status':0})
         except Exception as e:
             print e
-            return Response(status=400,data={'error': "fail"})
+            return Response(status=400,data={'status':1})
     
 class CreateGroup(APIView):
     def post(self, request, format=None):
@@ -276,10 +276,10 @@ class CreateGroup(APIView):
             if len(members) > 0:
                 for member in members:
                     group.members.add(UserProfile.objects.get(pk=member))         
-            return Response(status=200,data={'status':"success"})
+            return Response(status=200,data={'status':0})
         except Exception as e:
             print e
-            return Response(status=400,data={'error': "fail"})
+            return Response(status=400,data={'status':1})
     
 class RatingAction(APIView):
     def post(self, request, format=None):
@@ -288,9 +288,9 @@ class RatingAction(APIView):
             userid = request.data["userid"]
             rating = request.data["rating"]
             Rating.objects.create(actionid=actionid,userid=userid,rating=rating)
-            return Response(status=200,data={'status':"success"})
+            return Response(status=200,data={'status':0})
         except:
-            return Response(status=400,data={'error': "fail"})
+            return Response(status=400,data={'status':1})
     
 class NoteAction(APIView):
     def post(self, request, format=None):
@@ -302,10 +302,10 @@ class NoteAction(APIView):
             Note.objects.create(userid=userid,actionid=actionid,content=content)
             #t = threading.Thread(target=updatenotification(userid=userid,actionid=actionid))
             #t.start()
-            return Response(status=200,data={'status':"success"})
+            return Response(status=200,data={'status':0})
         except Exception as e:
             print e
-            return Response(status=400,data={'error': "fail"})
+            return Response(status=400,data={'status':1})
     
 class GroupDetails(APIView):
     def post(self, request, format=None):
@@ -346,10 +346,10 @@ class CreateMapAction(APIView):
             mapaction.firstPicture.save(name = str(mapaction.pk) + '.jpg', content = File(given_file))
             t = threading.Thread(target=updatenotification_mapaction(userid=userid,mapactionid=mapaction.pk))
             t.start()
-            return Response(status=200,data={'status':"success"})
+            return Response(status=200,data={'status':0})
         except Exception as e:
             print e
-            return Response(status=401 ,data={'status': "fail"})
+            return Response(status=401 ,data={'status':1})
         
 class GetNearbyAction(APIView):
     def post(self, request, format=None):
@@ -366,15 +366,15 @@ class GetNearbyAction(APIView):
             for mapaction in mapactions:
                 try:
                     Like.objects.get(actionid=action.pk,userid=userid)
-                    response_json = {'Liked':True,'mapactionid':mapaction.pk,'title':mapaction.title,'content':mapaction.content,'imageurl':mapaction.firstPicture.url,'number_likes':Like.objects.filter(mapactionid=mapaction.pk).count(),'avatarurl':sampleuser_avatarurl,'number_more':random.randint(5,1000)}
+                    response_json = {'long':mapaction.location.tuple[0],'lat':mapaction.location.tuple[1],'distance':mapaction.distance.m,'Liked':True,'mapactionid':mapaction.pk,'title':mapaction.title,'content':mapaction.content,'imageurl':mapaction.firstPicture.url,'number_likes':Like.objects.filter(mapactionid=mapaction.pk).count(),'avatarurl':sampleuser_avatarurl,'number_more':random.randint(5,1000)}
                     response_message.append(response_json)
                 except:
-                    response_json = {'Liked':False,'mapactionid':mapaction.pk,'title':mapaction.title,'content':mapaction.content,'imageurl':mapaction.firstPicture.url,'number_likes':Like.objects.filter(mapactionid=mapaction.pk).count(),'avatarurl':sampleuser_avatarurl,'number_more':random.randint(5,1000)}
+                    response_json = {'long':mapaction.location.tuple[0],'lat':mapaction.location.tuple[1],'distance':mapaction.distance.m,'Liked':False,'mapactionid':mapaction.pk,'title':mapaction.title,'content':mapaction.content,'imageurl':mapaction.firstPicture.url,'number_likes':Like.objects.filter(mapactionid=mapaction.pk).count(),'avatarurl':sampleuser_avatarurl,'number_more':random.randint(5,1000)}
                     response_message.append(response_json)
-            return Response(status=200,data={'status':"success"})
+            return Response(status=200,data={'status':0,'data':{'actions':response_message}})
         except Exception as e:
             print e
-            return Response(status=401 ,data={'status': "fail"})
+            return Response(status=401 ,data={'status':1})
     
 class SignOut(APIView):
     def post(self, request, format=None):
@@ -402,25 +402,25 @@ class ListAction(APIView):
                     resultjson = {'Liked':False,'title':action.title,'content':action.content, 'actionid':action.pk, 'actionimagerurl':action.firstPicture.url,'number_likes':Like.objects.filter(actionid=action.pk).count(),'avatarurl':sampleuser_avatarurl,'number_more':random.randint(5,1000)}
                     response_message.append(resultjson)
             #return HttpResponse(serializers.serialize("json", actions))
-            response_message_json = {'status':"success",'action':response_message}
+            response_message_json = {'status':0,'action':response_message}
             return Response(status=200 ,data=response_message_json)
         except Exception as e:
             print e
-            return Response(status=401 ,data={'status': "fail"})
+            return Response(status=401 ,data={'status':1})
 
 class GetNotifications(APIView):
     def post(self, request, format=None):
         userid = request.data['userid']
         try:
-            notifications = Notification.objects.filter(userid=userid)
+            notifications = Notification.objects.filter(userid=userid).values()
             result = []
             
             for notification in notifications:
                  notification_json = {'notification':notification} 
                  result.append(notification_json)
-            return Response(status=200,data={'status':"success",'result':result})
+            return Response(status=200,data={'status':0,'result':result})
         except:
-            return Response(status=400 ,data={'status': "fail"})
+            return Response(status=400 ,data={'status':1})
     
 def updatenotification_friend_request(userid,invitation):
     try:
@@ -436,7 +436,7 @@ class CreateFriend(APIView):
     def post(self, request, format=None):
         try:
             UserProfile.objects.get(pk=request.data['userid']).friends.add(User.objects.get(pk=request.data['friendid']))
-            return Response({'status':"success"},status=200)
+            return Response({'status':0},status=200)
         except Exception as e:
             print e
             return Response({'status':"fail"},status=401)
@@ -445,7 +445,7 @@ class GetFriends(APIView):
     def post(self, request, format=None):
         try:
             UserProfile.objects.get(pk=request.data['userid']).friends.add(User.objects.get(pk=request.data['friendid']))
-            return Response({'status':"success"},status=200)
+            return Response({'status':0},status=200)
         except Exception as e:
             print e
             return Response({'status':"fail"},status=401)
@@ -454,9 +454,9 @@ def updatenotification(userid,actionid):
     try:
         friends = UserProfile.objects.get(pk=userid).friends
         print "number of friend", friends.count()
-        for friend in friends:
+        for friend in friends.all():
             print "creating notification"
-            Notification.objects.create(userid=friend.friendid,notificationtype=Notification.LIKED,friend_like_id=userid,actionlikedid=actionid)
+            Notification.objects.create(userid=friend.pk,notificationtype=Notification.LIKED,friend_like_id=userid,actionlikedid=actionid)
             print "success"
     except Exception as e:
         print e   
@@ -470,10 +470,10 @@ class LikeAction(APIView):
             Like.objects.create(userid=int(userid),actionid=int(actionid))
             t = threading.Thread(target=updatenotification(userid=userid,actionid=actionid))
             t.start()
-            return Response(status=200,data={'status':"success"})
+            return Response(status=200,data={'status':0})
         except Exception as e:
             print e
-            return Response(status=400,data={'error': "fail"})
+            return Response(status=400,data={'status':1})
 
 class GetLikesAction(APIView):
     def post(self, request, format=None):
@@ -494,24 +494,24 @@ class GetLikesAction(APIView):
                     user_liked_json={"userid":user_liked_id}
                     users_liked.append(user_liked_json)
             
-            return Response(status=200,data={'status':"success",'likes_number':number_of_likes,'users_liked':users_liked})
+            return Response(status=200,data={'status':0,'likes_number':number_of_likes,'users_liked':users_liked})
         except Exception as e:
             print e
-            return Response(status=200 ,data={'status': "fail"})
+            return Response(status=200 ,data={'status':1})
 
 class CommentGroup(APIView):
     def post(self, request, format=None):
         try:
             userid = request.data["userid"]
-            actionid = request.data["actionid"]
+            groupid = request.data["groupid"]
             print userid 
             Like.objects.create(userid=int(userid),actionid=int(actionid))
             t = threading.Thread(target=updatenotification(userid=userid,actionid=actionid))
             t.start()
-            return Response(status=200,data={'status':"success"})
+            return Response(status=200,data={'status':0})
         except Exception as e:
             print e
-            return Response(status=400,data={'error': "fail"})
+            return Response(status=400,data={'status':1})
 
 def updatenotification_invitation(userid,invitation):
     try:
@@ -533,10 +533,10 @@ class SendInvitation(APIView):
             invitation = Invitation.objects.create(fromuser=fromuserid,touser=touserid,actionid=actionid,content=content,isaccept=False)
             t = threading.Thread(target=updatenotification_invitation(touserid,invitation=invitation))
             t.start()
-            return Response(status=200,data={'status':"success"})
+            return Response(status=200,data={'status':0})
         except Exception as e:
             print e
-            return Response(status=400,data={'error': "fail"})
+            return Response(status=400,data={'status':1})
 class AcceptInvitation(APIView):
     def post(self, request, format=None):
         try:
@@ -544,7 +544,7 @@ class AcceptInvitation(APIView):
             invitation = Invitation.objects.get(pk=invitationid)
             invitation.isaccept = True
             invitation.save()
-            return Response(status=200,data={'status':"success"})
+            return Response(status=200,data={'status':0})
         except Exception as e:
             print e
-            return Response(status=400,data={'error': "fail"})
+            return Response(status=400,data={'status':1})
